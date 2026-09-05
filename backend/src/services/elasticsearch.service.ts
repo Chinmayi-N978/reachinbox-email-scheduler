@@ -1,14 +1,70 @@
 import { Client } from "@elastic/elasticsearch";
 
-const esNode = process.env.ELASTICSEARCH_NODE || "http://localhost:9200";
-const esApiKey = process.env.ELASTICSEARCH_API_KEY;
+const esNode = (process.env.ELASTICSEARCH_NODE || "http://localhost:9200")
+  .trim()
+  .replace(/\/+$/, "");
+const esApiKey = process.env.ELASTICSEARCH_API_KEY
+  ? process.env.ELASTICSEARCH_API_KEY.trim()
+  : undefined;
 
 export const esClient = new Client({
   node: esNode,
   auth: esApiKey ? { apiKey: esApiKey } : undefined,
 });
 
-export const ELASTICSEARCH_INDEX = process.env.ELASTICSEARCH_INDEX || "emails";
+export const ELASTICSEARCH_INDEX = (
+  process.env.ELASTICSEARCH_INDEX || "emails"
+).trim();
+
+let indexEnsured = false;
+
+/**
+ * Ensures the target Elasticsearch index exists with proper field mappings.
+ * Idempotent: Does not recreate, alter, or delete an existing index.
+ */
+export async function ensureIndex(): Promise<void> {
+  if (indexEnsured) return;
+
+  try {
+    const exists = await esClient.indices.exists({ index: ELASTICSEARCH_INDEX });
+    if (!exists) {
+      await esClient.indices.create({
+        index: ELASTICSEARCH_INDEX,
+        mappings: {
+          properties: {
+            id: { type: "keyword" },
+            userId: { type: "keyword" },
+            senderId: { type: "keyword" },
+            campaignId: { type: "keyword" },
+            recipient: {
+              type: "text",
+              fields: { keyword: { type: "keyword" } },
+            },
+            subject: { type: "text" },
+            body: { type: "text" },
+            status: { type: "keyword" },
+            scheduledAt: { type: "date" },
+            sentAt: { type: "date" },
+            failureReason: { type: "text" },
+            createdAt: { type: "date" },
+            updatedAt: { type: "date" },
+          },
+        },
+      });
+      console.log(`[Elasticsearch] Created index "${ELASTICSEARCH_INDEX}".`);
+    }
+    indexEnsured = true;
+  } catch (err: any) {
+    if (
+      err?.meta?.body?.error?.type === "resource_already_exists_exception" ||
+      err?.message?.includes("resource_already_exists_exception")
+    ) {
+      indexEnsured = true;
+      return;
+    }
+    throw err;
+  }
+}
 
 export interface EmailDocument {
   id: string;
@@ -32,6 +88,7 @@ export interface EmailDocument {
  */
 export async function indexEmailDocument(email: EmailDocument): Promise<void> {
   try {
+    await ensureIndex();
     await esClient.index({
       index: ELASTICSEARCH_INDEX,
       id: email.id,
@@ -44,11 +101,17 @@ export async function indexEmailDocument(email: EmailDocument): Promise<void> {
         subject: email.subject,
         body: email.body,
         status: email.status,
-        scheduledAt: email.scheduledAt ? new Date(email.scheduledAt).toISOString() : null,
+        scheduledAt: email.scheduledAt
+          ? new Date(email.scheduledAt).toISOString()
+          : null,
         sentAt: email.sentAt ? new Date(email.sentAt).toISOString() : null,
         failureReason: email.failureReason || null,
-        createdAt: email.createdAt ? new Date(email.createdAt).toISOString() : null,
-        updatedAt: email.updatedAt ? new Date(email.updatedAt).toISOString() : null,
+        createdAt: email.createdAt
+          ? new Date(email.createdAt).toISOString()
+          : null,
+        updatedAt: email.updatedAt
+          ? new Date(email.updatedAt).toISOString()
+          : null,
       },
     });
   } catch (error) {
@@ -69,6 +132,8 @@ export async function searchEmails(params: {
   page?: number;
   limit?: number;
 }) {
+  await ensureIndex();
+
   const page = params.page && params.page > 0 ? params.page : 1;
   const limit = params.limit && params.limit > 0 ? params.limit : 20;
   const from = (page - 1) * limit;

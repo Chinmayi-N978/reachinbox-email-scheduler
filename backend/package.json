@@ -8,6 +8,7 @@
     "worker": "tsx watch src/workers/email.worker.ts",
     "build": "tsc",
     "start": "tsx src/server.ts",
+    "backfill:elasticsearch": "tsx src/scripts/backfill-elasticsearch.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
