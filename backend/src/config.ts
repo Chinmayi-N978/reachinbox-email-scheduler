@@ -17,17 +17,17 @@ export const candidatePaths = [
 ];
 
 /**
- * Loads or hot-reloads environment variables from disk with override: true.
- * Ensures any edits to .env on disk immediately take effect in process.env.
+ * Loads environment variables from disk without overriding existing environment variables.
+ * Preserves variables injected by Railway CLI, Docker, or the runtime environment.
  */
 export function reloadEnv(): boolean {
   for (const envPath of candidatePaths) {
     if (fs.existsSync(envPath)) {
-      dotenv.config({ path: envPath, override: true });
+      dotenv.config({ path: envPath, override: false });
       return true;
     }
   }
-  dotenv.config({ override: true });
+  dotenv.config({ override: false });
   return false;
 }
 
