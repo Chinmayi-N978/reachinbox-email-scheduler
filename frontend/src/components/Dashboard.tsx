@@ -810,7 +810,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                         <td style={{ padding: "0.75rem", fontWeight: "600" }}>{email.recipient}</td>
                         <td style={{ padding: "0.75rem", color: "#d1d5db" }}>{email.subject}</td>
                         <td style={{ padding: "0.75rem", color: "#9ca3af" }}>{email.sentAt ? new Date(email.sentAt).toLocaleString() : "N/A"}</td>
-                        <td style={{ padding: "0.75rem" }}><span className="badge badge-sent">{email.status}</span></td>
+                        <td style={{ padding: "0.75rem" }}>
+                          <span className={`badge ${email.status === "SENT" ? "badge-sent" : "badge-failed"}`}>
+                            {email.status}
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

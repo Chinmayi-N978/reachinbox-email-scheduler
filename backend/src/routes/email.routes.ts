@@ -337,7 +337,7 @@ router.get("/sent", async (req: AuthenticatedRequest, res: Response) => {
 
     const where: any = {
       userId,
-      status: EmailStatus.SENT,
+      status: { in: [EmailStatus.SENT, EmailStatus.FAILED] },
     };
 
     if (senderId) where.senderId = senderId;
@@ -357,7 +357,7 @@ router.get("/sent", async (req: AuthenticatedRequest, res: Response) => {
         where,
         skip,
         take: limit,
-        orderBy: { sentAt: "desc" },
+        orderBy: [{ sentAt: "desc" }, { createdAt: "desc" }],
         include: {
           sender: true,
           campaign: true,
