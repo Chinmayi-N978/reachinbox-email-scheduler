@@ -58,6 +58,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [metrics, setMetrics] = useState<EmailMetrics | null>(null);
   const [scheduledEmails, setScheduledEmails] = useState<Email[]>([]);
   const [sentEmails, setSentEmails] = useState<Email[]>([]);
+  const [sentStatusFilter, setSentStatusFilter] = useState<"ALL" | "SENT" | "FAILED">("SENT");
   const [selectedEmailDetail, setSelectedEmailDetail] = useState<Email | null>(null);
   const [slackStatus, setSlackStatus] = useState<{
     connected: boolean;
@@ -776,53 +777,88 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         )}
 
         {/* Tab 3: Sent Emails */}
-        {activeTab === "sent" && (
-          <div className="glass-card" style={{ padding: "1.5rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: "700" }}>Sent Email Log</h2>
-              <button onClick={loadSentEmails} className="glass-btn-secondary" style={{ padding: "0.4rem 0.8rem", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                <RefreshCw size={14} /> Refresh
-              </button>
-            </div>
+        {activeTab === "sent" && (() => {
+          const filteredSentEmails = sentEmails.filter((email) => {
+            if (sentStatusFilter === "ALL") return true;
+            return email.status === sentStatusFilter;
+          });
 
-            {sentEmails.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "3rem", color: "#9ca3af" }}>No sent email records found.</div>
-            ) : (
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", color: "#9ca3af" }}>
-                      <th style={{ padding: "0.75rem" }}>Recipient</th>
-                      <th style={{ padding: "0.75rem" }}>Subject</th>
-                      <th style={{ padding: "0.75rem" }}>Sent At</th>
-                      <th style={{ padding: "0.75rem" }}>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sentEmails.map((email) => (
-                      <tr
-                        key={email.id}
-                        style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", cursor: "pointer", transition: "background 0.2s" }}
-                        onClick={() => setSelectedEmailDetail(email)}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          return (
+            <div className="glass-card" style={{ padding: "1.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                  <h2 style={{ fontSize: "1.25rem", fontWeight: "700" }}>Sent Email Log</h2>
+                  <div style={{ display: "flex", gap: "0.25rem", background: "rgba(255,255,255,0.05)", padding: "0.2rem", borderRadius: "8px" }}>
+                    {(["ALL", "SENT", "FAILED"] as const).map((filterOpt) => (
+                      <button
+                        key={filterOpt}
+                        type="button"
+                        onClick={() => setSentStatusFilter(filterOpt)}
+                        style={{
+                          padding: "0.25rem 0.65rem",
+                          fontSize: "0.75rem",
+                          fontWeight: "600",
+                          borderRadius: "6px",
+                          border: "none",
+                          cursor: "pointer",
+                          background: sentStatusFilter === filterOpt ? "rgba(99, 102, 241, 0.4)" : "transparent",
+                          color: sentStatusFilter === filterOpt ? "#ffffff" : "#9ca3af",
+                          transition: "all 0.15s ease",
+                        }}
                       >
-                        <td style={{ padding: "0.75rem", fontWeight: "600" }}>{email.recipient}</td>
-                        <td style={{ padding: "0.75rem", color: "#d1d5db" }}>{email.subject}</td>
-                        <td style={{ padding: "0.75rem", color: "#9ca3af" }}>{email.sentAt ? new Date(email.sentAt).toLocaleString() : "N/A"}</td>
-                        <td style={{ padding: "0.75rem" }}>
-                          <span className={`badge ${email.status === "SENT" ? "badge-sent" : "badge-failed"}`}>
-                            {email.status}
-                          </span>
-                        </td>
-                      </tr>
+                        {filterOpt}
+                      </button>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
+                <button onClick={loadSentEmails} className="glass-btn-secondary" style={{ padding: "0.4rem 0.8rem", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <RefreshCw size={14} /> Refresh
+                </button>
               </div>
-            )}
-          </div>
-        )}
+
+              {filteredSentEmails.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "3rem", color: "#9ca3af" }}>
+                  {sentEmails.length === 0
+                    ? "No sent email records found."
+                    : `No ${sentStatusFilter} email records found.`}
+                </div>
+              ) : (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", color: "#9ca3af" }}>
+                        <th style={{ padding: "0.75rem" }}>Recipient</th>
+                        <th style={{ padding: "0.75rem" }}>Subject</th>
+                        <th style={{ padding: "0.75rem" }}>Sent At</th>
+                        <th style={{ padding: "0.75rem" }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredSentEmails.map((email) => (
+                        <tr
+                          key={email.id}
+                          style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", cursor: "pointer", transition: "background 0.2s" }}
+                          onClick={() => setSelectedEmailDetail(email)}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <td style={{ padding: "0.75rem", fontWeight: "600" }}>{email.recipient}</td>
+                          <td style={{ padding: "0.75rem", color: "#d1d5db" }}>{email.subject}</td>
+                          <td style={{ padding: "0.75rem", color: "#9ca3af" }}>{email.sentAt ? new Date(email.sentAt).toLocaleString() : "N/A"}</td>
+                          <td style={{ padding: "0.75rem" }}>
+                            <span className={`badge ${email.status === "SENT" ? "badge-sent" : "badge-failed"}`}>
+                              {email.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Tab 4: Elasticsearch Search */}
         {activeTab === "search" && (
