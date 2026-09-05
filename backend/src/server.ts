@@ -78,4 +78,14 @@ redis.ping().then((result) => {
 
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
+
+  if (process.env.ENABLE_EMBEDDED_WORKER === "true") {
+    import("./workers/email.worker.js")
+      .then(() => {
+        console.log("[Server] Embedded BullMQ email worker started.");
+      })
+      .catch((err) => {
+        console.error("[Server] Failed to start embedded worker:", err);
+      });
+  }
 });

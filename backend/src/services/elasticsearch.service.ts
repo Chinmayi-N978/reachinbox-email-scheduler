@@ -1,9 +1,11 @@
 import { Client } from "@elastic/elasticsearch";
 
 const esNode = process.env.ELASTICSEARCH_NODE || "http://localhost:9200";
+const esApiKey = process.env.ELASTICSEARCH_API_KEY;
 
 export const esClient = new Client({
   node: esNode,
+  auth: esApiKey ? { apiKey: esApiKey } : undefined,
 });
 
 export const ELASTICSEARCH_INDEX = process.env.ELASTICSEARCH_INDEX || "emails";
