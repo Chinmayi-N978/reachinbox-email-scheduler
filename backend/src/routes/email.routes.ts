@@ -337,7 +337,10 @@ router.get("/sent", async (req: AuthenticatedRequest, res: Response) => {
 
     const where: any = {
       userId,
-      status: { in: [EmailStatus.SENT, EmailStatus.FAILED] },
+      status:
+        query.status === EmailStatus.SENT || query.status === EmailStatus.FAILED
+          ? query.status
+          : { in: [EmailStatus.SENT, EmailStatus.FAILED] },
     };
 
     if (senderId) where.senderId = senderId;

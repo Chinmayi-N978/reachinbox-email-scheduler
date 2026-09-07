@@ -134,12 +134,14 @@ export const api = {
 
   async getSentEmails(params?: {
     senderId?: string;
+    status?: string;
     search?: string;
     page?: number;
     limit?: number;
   }): Promise<{ success: boolean; data: Email[]; pagination: Pagination }> {
     const searchParams = new URLSearchParams();
     if (params?.senderId) searchParams.append("senderId", params.senderId);
+    if (params?.status) searchParams.append("status", params.status);
     if (params?.search) searchParams.append("search", params.search);
     if (params?.page) searchParams.append("page", String(params.page));
     if (params?.limit) searchParams.append("limit", String(params.limit));

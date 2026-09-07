@@ -1027,25 +1027,41 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
 
         {/* Tab 7: Metrics & Analytics */}
         {activeTab === "metrics" && metrics && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.5rem" }}>
-            <div className="glass-card" style={{ padding: "1.5rem" }}>
-              <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>Total Emails</span>
-              <div style={{ fontSize: "2rem", fontWeight: "800", marginTop: "0.5rem" }}>{metrics.total}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
+              <div className="glass-card" style={{ padding: "1.5rem" }}>
+                <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>Total Emails</span>
+                <div style={{ fontSize: "2rem", fontWeight: "800", marginTop: "0.5rem" }}>{metrics.total}</div>
+              </div>
+
+              <div className="glass-card" style={{ padding: "1.5rem" }}>
+                <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>Scheduled</span>
+                <div style={{ fontSize: "2rem", fontWeight: "800", color: "#fbbf24", marginTop: "0.5rem" }}>{metrics.scheduled}</div>
+              </div>
+
+              <div className="glass-card" style={{ padding: "1.5rem" }}>
+                <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>Sent</span>
+                <div style={{ fontSize: "2rem", fontWeight: "800", color: "#34d399", marginTop: "0.5rem" }}>{metrics.sent}</div>
+              </div>
+
+              <div className="glass-card" style={{ padding: "1.5rem" }}>
+                <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>Failed</span>
+                <div style={{ fontSize: "2rem", fontWeight: "800", color: "#f87171", marginTop: "0.5rem" }}>{metrics.failed}</div>
+              </div>
+
+              <div className="glass-card" style={{ padding: "1.5rem" }}>
+                <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>Delivery Success Rate</span>
+                <div style={{ fontSize: "2rem", fontWeight: "800", color: "#38bdf8", marginTop: "0.5rem" }}>{metrics.successRate}%</div>
+              </div>
             </div>
 
-            <div className="glass-card" style={{ padding: "1.5rem" }}>
-              <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>Scheduled</span>
-              <div style={{ fontSize: "2rem", fontWeight: "800", color: "#fbbf24", marginTop: "0.5rem" }}>{metrics.scheduled}</div>
-            </div>
-
-            <div className="glass-card" style={{ padding: "1.5rem" }}>
-              <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>Sent</span>
-              <div style={{ fontSize: "2rem", fontWeight: "800", color: "#34d399", marginTop: "0.5rem" }}>{metrics.sent}</div>
-            </div>
-
-            <div className="glass-card" style={{ padding: "1.5rem" }}>
-              <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>Success Rate</span>
-              <div style={{ fontSize: "2rem", fontWeight: "800", color: "#38bdf8", marginTop: "0.5rem" }}>{metrics.successRate}%</div>
+            <div className="glass-card" style={{ padding: "1.25rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem", fontSize: "0.85rem", color: "#9ca3af" }}>
+              <div>
+                <strong style={{ color: "#d1d5db" }}>Calculation Basis:</strong> Success Rate = <code style={{ color: "#38bdf8", background: "rgba(56, 189, 248, 0.1)", padding: "0.15rem 0.4rem", borderRadius: "4px" }}>Sent / (Sent + Failed)</code> across all completed delivery attempts.
+              </div>
+              <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>
+                Historical failures reflect Railway outbound raw SMTP port restrictions.
+              </span>
             </div>
           </div>
         )}
